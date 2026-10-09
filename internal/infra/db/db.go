@@ -56,7 +56,10 @@ func MustConnect(opts *Options) *database {
 				Name    string
 				Version string
 			}{
-				{Name: opts.ClientID, Version: opts.ClientVersion},
+				{
+					Name:    opts.ClientID,
+					Version: opts.ClientVersion,
+				},
 			},
 		},
 	})

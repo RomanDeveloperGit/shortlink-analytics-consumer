@@ -12,7 +12,7 @@ type LinkCreatedEvent struct {
 }
 
 type LinkVisitedEvent struct {
-	EventID   string `db:"event_id"   json:"eventId"`
+	EventID   string `db:"event_id"  json:"eventId"`
 	LinkID    int    `db:"link_id"   json:"linkId"`
 	Timestamp int64  `db:"timestamp" json:"timestamp"`
 }

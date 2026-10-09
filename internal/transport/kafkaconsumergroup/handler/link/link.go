@@ -25,7 +25,7 @@ type handler struct {
 
 func NewHandler(logger *slog.Logger, repository linkRepository) *handler {
 	return &handler{
-		logger: logger,
+		logger:     logger,
 		repository: repository,
 	}
 }
