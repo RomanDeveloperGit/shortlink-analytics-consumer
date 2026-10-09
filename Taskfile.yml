@@ -1,0 +1,124 @@
+# Taskfile for starting cmds on local machine
+
+version: '3'
+
+vars:
+  GO_VERSION: '1.26.4'
+  GOLANGCI_LINT_VERSION: 'v2.13.2'
+  GCI_VERSION: 'v0.14.0'
+  GOFUMPT_VERSION: 'v0.12.0'
+  GOLINES_VERSION: 'v0.15.0'
+  AIR_VERSION: 'v1.67.4'
+  GOOSE_VERSION: 'v3.28.0'
+
+  BIN_DIR: '{{.ROOT_DIR}}/bin'
+  GOLANGCI_LINT: '{{.BIN_DIR}}/golangci-lint'
+  GCI: '{{.BIN_DIR}}/gci'
+  GOFUMPT: '{{.BIN_DIR}}/gofumpt'
+  GOLINES: '{{.BIN_DIR}}/golines'
+  AIR: '{{.BIN_DIR}}/air'
+  GOOSE: '{{.BIN_DIR}}/goose'
+
+  TEMP_DIR: 'tmp'
+  TEMP_ENV_FILE: '{{.TEMP_DIR}}/.env.local'
+
+  CLICKHOUSE_HOST: 'localhost'
+  CLICKHOUSE_PORT: '9000'
+  CLICKHOUSE_USER: 'admin'
+  CLICKHOUSE_PASSWORD: 'admin'
+  CLICKHOUSE_DB: 'shortlink'
+
+  MIGRATION_DIR: '{{.ROOT_DIR}}/migrations'
+  MIGRATION_DSN: 'clickhouse://{{.CLICKHOUSE_HOST}}:{{.CLICKHOUSE_PORT}}?username={{.CLICKHOUSE_USER}}&password={{.CLICKHOUSE_PASSWORD}}&database={{.CLICKHOUSE_DB}}'
+
+tasks:
+  bin:
+    desc: Create bin directory
+    cmds:
+      - mkdir -p {{.BIN_DIR}}
+    status:
+      - test -d {{.BIN_DIR}}
+  install:
+    desc: Install tools
+    deps: [bin]
+    env:
+      GOBIN: '{{.BIN_DIR}}'
+    cmds:
+      - go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@{{.GOLANGCI_LINT_VERSION}}
+      - go install github.com/daixiang0/gci@{{.GCI_VERSION}}
+      - go install mvdan.cc/gofumpt@{{.GOFUMPT_VERSION}}
+      - go install github.com/golangci/golines@{{.GOLINES_VERSION}}
+      - go install github.com/air-verse/air@{{.AIR_VERSION}}
+      - go install github.com/pressly/goose/v3/cmd/goose@{{.GOOSE_VERSION}}
+    status:
+      - test -x {{.GOLANGCI_LINT}}
+      - test -x {{.GCI}}
+      - test -x {{.GOFUMPT}}
+      - test -x {{.GOLINES}}
+      - test -x {{.AIR}}
+      - test -x {{.GOOSE}}
+  lint:
+    desc: Run golangci-lint
+    deps: [install]
+    cmds:
+      - '{{.GOLANGCI_LINT}} run ./... --config={{.ROOT_DIR}}/.golangci.yml'
+  format:
+    desc: Run formatters
+    deps: [install]
+    cmds:
+      - find . -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GOFUMPT}} -extra -w {} +
+      - find . -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GCI}} write -s standard -s default -s "prefix(github.com/RomanDeveloperGit/shortlink-analytics-consumer/)" {} +
+      - find . -type f -name '*.go' ! -path '*/mocks/*' -exec {{.GOLINES}} -w {} +
+  migrate:
+    desc: Run goose with prepared settings
+    deps: [install]
+    env:
+      GOOSE_DRIVER: 'clickhouse'
+      GOOSE_DBSTRING: '{{.MIGRATION_DSN}}'
+    cmds:
+      - mkdir -p {{.MIGRATION_DIR}}
+      - '{{.GOOSE}} -dir {{.MIGRATION_DIR}} {{.CLI_ARGS}}'
+  prepare-env-for-start:
+    desc: Prepare env for start
+    cmds:
+      - mkdir -p {{.TEMP_DIR}}
+      - |
+        cat > {{.TEMP_ENV_FILE}} <<EOF
+        ENV=local
+        SERVICE_NAME=shortlink-analytics-consumer
+        SERVICE_VERSION=0.0.0
+        KAFKA_BROKERS=localhost:9094
+        KAFKA_MAX_CONSUME_HANDLE_ATTEMPTS=5
+        KAFKA_USER=analytics-consumer
+        KAFKA_PASSWORD=analytics-consumer-secret
+        KAFKA_MAX_CONSUME_PROCESS_TIME=1m
+        KAFKA_CONSUMERS_COUNT=100
+        CLICKHOUSE_HOST={{.CLICKHOUSE_HOST}}
+        CLICKHOUSE_PORT={{.CLICKHOUSE_PORT}}
+        CLICKHOUSE_USER={{.CLICKHOUSE_USER}}
+        CLICKHOUSE_PASSWORD={{.CLICKHOUSE_PASSWORD}}
+        CLICKHOUSE_DB={{.CLICKHOUSE_DB}}
+        CLICKHOUSE_MAX_IDLE_CONNS=10
+        CLICKHOUSE_MAX_OPEN_CONNS=100
+        CLICKHOUSE_CONN_MAX_LIFETIME=5m
+        CLICKHOUSE_PING_TIMEOUT=1s
+        CLICKHOUSE_DIAL_TIMEOUT=5s
+        EOF
+  start:local:
+    desc: Run server with AIR
+    deps: [install]
+    dotenv:
+      - '{{.TEMP_ENV_FILE}}'
+    cmds:
+      - task prepare-env-for-start
+      - '{{.AIR}} --build.cmd "go build -o bin/api cmd/consumer/main.go" --build.entrypoint "./bin/consumer"'
+  start:int:
+    desc: Run server like integration stand
+    deps: [install]
+    dotenv:
+      - '{{.TEMP_ENV_FILE}}'
+    env:
+      ENV: int
+    cmds:
+      - task prepare-env-for-start
+      - go run ./cmd/consumer/main.go
