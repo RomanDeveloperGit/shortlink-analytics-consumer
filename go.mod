@@ -3,11 +3,14 @@ module github.com/RomanDeveloperGit/shortlink-analytics-consumer
 go 1.26.4
 
 require (
+	github.com/ClickHouse/clickhouse-go/v2 v2.49.0
+	github.com/IBM/sarama v1.61.1
+	github.com/caarlos0/env/v11 v11.4.1
+)
+
+require (
 	github.com/ClickHouse/ch-go v0.74.0 // indirect
-	github.com/ClickHouse/clickhouse-go/v2 v2.49.0 // indirect
-	github.com/IBM/sarama v1.61.1 // indirect
 	github.com/andybalholm/brotli v1.2.6 // indirect
-	github.com/caarlos0/env/v11 v11.4.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect

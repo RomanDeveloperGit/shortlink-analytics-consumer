@@ -33,19 +33,20 @@ type LinkCreatedMessage struct {
 
 func (lcm *LinkCreatedMessage) ConvertToLinkCreatedEvent() *LinkCreatedEvent {
 	return &LinkCreatedEvent{
-		EventID:   lcm.Meta.EventId,
-		ID:        lcm.Link.ID,
-		ShortCode: lcm.Link.ShortCode,
-		FullURL:   lcm.Link.FullURL,
-		ExpiresAt: lcm.Link.ExpiresAt,
-		CreatedAt: lcm.Link.CreatedAt,
+		EventID:     lcm.Meta.EventId,
+		LinkID:      lcm.Link.ID,
+		ShortCode:   lcm.Link.ShortCode,
+		FullURL:     lcm.Link.FullURL,
+		AuthorEmail: lcm.Link.AuthorEmail,
+		ExpiresAt:   lcm.Link.ExpiresAt,
+		CreatedAt:   lcm.Link.CreatedAt,
 	}
 }
 
 type LinkVisitedMessage struct {
-	Meta      Meta  `json:"meta"`
-	LinkID    int   `json:"linkId"`
-	Timestamp int64 `json:"timestamp"`
+	Meta      Meta      `json:"meta"`
+	LinkID    int       `json:"linkId"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 func (lvm *LinkVisitedMessage) ConvertToLinkVisitedEvent() *LinkVisitedEvent {

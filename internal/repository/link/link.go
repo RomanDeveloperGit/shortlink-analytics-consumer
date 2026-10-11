@@ -2,7 +2,6 @@ package link
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 
@@ -24,18 +23,18 @@ func (r *repository) CreateLinkCreatedEvent(
 	link *model.LinkCreatedEvent,
 ) error {
 	q := `
-		INSERT INTO link_created_event (event_id, link_id, short_code, full_url, expires_at, created_at)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO link_created_event (event_id, link_id, short_code, full_url, author_email, expires_at, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
-	fmt.Println(link)
 	return r.db.Exec(
 		ctx,
 		q,
 		link.EventID,
-		link.ID,
+		link.LinkID,
 		link.ShortCode,
 		link.FullURL,
+		link.AuthorEmail,
 		link.ExpiresAt,
 		link.CreatedAt,
 	)

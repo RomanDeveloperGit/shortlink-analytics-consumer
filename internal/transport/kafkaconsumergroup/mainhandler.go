@@ -88,10 +88,7 @@ func (h *handler) processWithRetry(ctx context.Context, msg *sarama.ConsumerMess
 			return nil
 		}
 
-		h.logger.Error("failed to process message",
-			slog.Int("attempt", attempt),
-			slog.Any("error", err),
-		)
+		lastErr = err
 
 		// экспоненциальный backoff: 100ms, 200ms, 400ms...
 		time.Sleep(time.Duration(100*(1<<(attempt-1))) * time.Millisecond)

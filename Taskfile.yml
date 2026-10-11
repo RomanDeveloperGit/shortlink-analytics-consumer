@@ -92,7 +92,7 @@ tasks:
         KAFKA_USER=analytics-consumer
         KAFKA_PASSWORD=analytics-consumer-secret
         KAFKA_MAX_CONSUME_PROCESS_TIME=1m
-        KAFKA_CONSUMERS_COUNT=100
+        KAFKA_CONSUMERS_COUNT=3
         CLICKHOUSE_HOST={{.CLICKHOUSE_HOST}}
         CLICKHOUSE_PORT={{.CLICKHOUSE_PORT}}
         CLICKHOUSE_USER={{.CLICKHOUSE_USER}}

@@ -3,16 +3,17 @@ package model
 import "time"
 
 type LinkCreatedEvent struct {
-	EventID   string    `db:"event_id"   json:"eventId"`
-	ID        int       `db:"id"         json:"id"`
-	ShortCode string    `db:"short_code" json:"shortCode"`
-	FullURL   string    `db:"full_url"   json:"fullUrl"`
-	ExpiresAt time.Time `db:"expires_at" json:"expiresAt"`
-	CreatedAt time.Time `db:"created_at" json:"createdAt"`
+	EventID     string    `ch:"event_id"`
+	LinkID      int       `ch:"link_id"`
+	ShortCode   string    `ch:"short_code"`
+	FullURL     string    `ch:"full_url"`
+	AuthorEmail *string   `ch:"author_email"`
+	ExpiresAt   time.Time `ch:"expires_at"`
+	CreatedAt   time.Time `ch:"created_at"`
 }
 
 type LinkVisitedEvent struct {
-	EventID   string `db:"event_id"  json:"eventId"`
-	LinkID    int    `db:"link_id"   json:"linkId"`
-	Timestamp int64  `db:"timestamp" json:"timestamp"`
+	EventID   string    `ch:"event_id"`
+	LinkID    int       `ch:"link_id"`
+	Timestamp time.Time `ch:"timestamp"`
 }
